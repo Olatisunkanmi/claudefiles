@@ -1,0 +1,13 @@
+backups/
+cache/
+ide/
+projects/
+shell-snapshots/
+statsig/
+rules/.DS_Store
+todos/
+debug/
+skills/.DS_Store
+stats-cache.json
+settings.json.backup
+.DS_Store

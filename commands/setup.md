@@ -1,0 +1,158 @@
+---
+name: setup
+allowed-tools: Bash(cp:*), Bash(mkdir:*), Bash(ls:*), Bash(cat:*), Bash(mv:*), Bash(rm:*), Bash(date:*), Bash(uname:*), Bash(chmod:*), Bash(npx:*), Read, Write, Glob
+description: Install claudefiles — copy skills, commands, sounds, hooks, and plugins into ~/.claude/
+---
+
+## Your task
+
+Install claudefiles by reading the manifest and deploying everything to the target directory.
+
+### Step 1: Read the manifest
+
+Read `claudefiles.yaml` in this repo root. It declares what gets installed and how.
+
+### Step 2: Ask install target
+
+Ask the user:
+
+- **Global** (recommended): Install to `~/.claude/` — available in all Claude Code sessions
+- **Local**: Install to `./.claude/` in the current project only
+
+### Step 3: Detect platform
+
+Determine if running on macOS or Linux to resolve the `{{sound_player}}` template variable:
+
+- macOS → `afplay`
+- Linux → `aplay`
+
+```bash
+uname -s
+```
+
+### Step 4: Create target directories
+
+```bash
+mkdir -p <target>/skills
+mkdir -p <target>/commands
+mkdir -p <target>/sounds
+mkdir -p <target>/hooks
+```
+
+### Step 5: Copy files
+
+Copy the contents declared in `install.targets`:
+
+```bash
+# Skills — copy each skill directory
+cp -R skills/* <target>/skills/
+
+# Commands — copy all .md files
+cp commands/*.md <target>/commands/
+
+# Sounds — copy all files
+cp sounds/* <target>/sounds/
+
+# Hooks — copy all hook scripts and make executable
+cp hooks/* <target>/hooks/
+chmod +x <target>/hooks/*
+```
+
+### Step 6: Smart-merge global CLAUDE.md
+
+Deploy the global agent directives to `<target>/CLAUDE.md` using a smart-merge strategy:
+
+1. Read `dotfiles/CLAUDE.md` from this repo (the source directives)
+2. If `<target>/CLAUDE.md` already exists and is non-empty:
+   a. Back it up: `cp <target>/CLAUDE.md <target>/CLAUDE.md.backup`
+   b. Read the existing CLAUDE.md
+   c. **Smart-merge**: Compare by section header (## headings). For each section in the source:
+   - If the section doesn't exist in the target → append it
+   - If the section exists in the target → keep the target's version (user customizations win)
+     d. Preserve any sections in the target that don't exist in the source (user's custom sections)
+3. If `<target>/CLAUDE.md` doesn't exist or is empty, copy the source as-is
+
+This ensures user customizations are preserved while new guardrails from upstream are added.
+
+### Step 7: Smart-merge settings.json
+
+If `<target>/settings.json` already exists:
+
+1. Back it up: `cp <target>/settings.json <target>/settings.json.backup`
+2. Read the existing settings
+3. Deep-merge: repo settings take priority, but preserve user's custom keys that don't conflict
+
+If no existing settings.json, create a fresh one.
+
+Generate the final `settings.json` from the manifest's `settings` section:
+
+- Resolve `{{sound_player}}` with the platform-appropriate player
+- **Shell compatibility**: Claude Code hooks execute via `/bin/sh` (POSIX shell), not bash. Any hook command that uses bash-specific syntax (arrays `()`, `$RANDOM`, `${#array[@]}`, `[[ ]]`) MUST be wrapped in `bash -c '...'`. Scan every resolved command string before writing it to settings.json.
+- Structure hooks in the Claude Code settings.json format:
+  ```json
+  {
+    "hooks": {
+      "SessionStart": [{ "matcher": "...", "hooks": [{ "type": "command", "command": "..." }] }],
+      ...
+    },
+    "enabledPlugins": { "<plugin>": true, ... },
+    "alwaysThinkingEnabled": true
+  }
+  ```
+- **All plugins** from the manifest's `settings.plugins` list must appear in `enabledPlugins` set to `true` — this includes both marketplace plugins (`feature-dev@claude-plugins-official`) and local plugins (`ux@claudefiles`).
+- Include `extraKnownMarketplaces` from the manifest so Claude Code can discover the `claudefiles` marketplace on future sessions.
+
+Write the merged settings to `<target>/settings.json`.
+
+### Step 8: Set required environment variables
+
+Read the `env` section from `claudefiles.yaml`. For each variable declared:
+
+1. Detect the user's shell rc file:
+   - zsh → `~/.zshrc`
+   - bash → `~/.bashrc`
+2. Check if `export <VAR>=` already exists in the rc file
+3. If missing, append `export <VAR>="<value>"` to the rc file
+4. If present but with a different value, update it to match the manifest
+
+```bash
+# Example for USER_TYPE=ant
+grep -q 'export USER_TYPE=' ~/.zshrc || echo 'export USER_TYPE="ant"' >> ~/.zshrc
+```
+
+### Step 9: Install external dependencies
+
+Confirm If User would like to Install GSD (get-shit-done) — a spec-driven development system for Claude Code.
+
+Determine the response.
+-- **Y** -> `yes`
+-- **N** -> `no`
+
+Determine the install flag based on the user's target choice:
+
+- **Global** → `--global`
+- **Local** → `--local`
+
+```bash
+npx get-shit-done-cc@latest --claude --global  # or --local
+```
+
+If the install fails, warn the user but continue — GSD is optional and can be installed separately later.
+
+### Step 10: Print summary
+
+List what was installed:
+
+- Number of skills copied
+- Number of commands copied
+- Number of sound files copied
+- Number of hooks copied
+- Settings merged (or created fresh)
+- Global CLAUDE.md deployed (merged, created fresh, or unchanged)
+- Whether a backup was made
+- The target directory
+- Plugins enabled via `enabledPlugins` and `extraKnownMarketplaces` (list each)
+- GSD install status (success or skipped)
+- Environment variables set (or already present)
+
+**Remind the user**: Restart Claude Code for plugins and settings to take effect. Claude Code will auto-install plugins from the `claudefiles` marketplace on next startup. Verify GSD with `/gsd:help`.
