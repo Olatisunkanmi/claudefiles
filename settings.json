@@ -1,4 +1,53 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(gh)",
+      "Bash(gh:*)",
+      "Bash(gh-issue:*)",
+      "Bash(gh-pr-create:*)",
+      "Bash(gh-pr-reply:*)",
+      "Bash(gh-pr-resolve-thread:*)",
+      "Bash(gh-pr-threads:*)",
+      "Bash(ado-builds:*)",
+      "Bash(ado-logs:*)",
+      "Bash(ado-pr:*)",
+      "Bash(ado-pr-threads:*)",
+      "Read(/tmp/*)",
+      "Read(/tmp/**)",
+      "Write(/tmp/*)",
+      "Write(/tmp/**)",
+      "Edit(/tmp/*)",
+      "Edit(/tmp/**)",
+      "Bash(claude-log:*)",
+      "Bash(get-tmp-filename)",
+      "Bash(get-skill-tmpdir:*)",
+      "Bash(git-default-branch)",
+      "Bash(git-branch-base)",
+      "Bash(git-branch-log)",
+      "Bash(git-branch-diff-stat)",
+      "Bash(git-branch-diff-files)",
+      "Bash(git-platform)",
+      "Bash(git:*)",
+      "Grep(/tmp/*)",
+      "Grep(/tmp/**)",
+      "Bash(ruff:*)",
+      "Bash(pyright:*)",
+      "Bash(bandit:*)",
+      "Bash(pip-audit:*)",
+      "Bash(safety:*)",
+      "Bash(pytest:*)",
+      "Bash(agnix:*)",
+      "Bash(ls:*)",
+      "Bash(uv:*)",
+      "Skill(mine.commit-push)",
+      "Bash(claude-tmux:*)",
+      "Bash(edit-manifest:*)",
+      "Bash(which:*)"
+    ],
+    "ask": [],
+    "defaultMode": "default"
+  },
+  "includeGitInstructions": false,
   "hooks": {
     "SessionStart": [
       {
@@ -24,7 +73,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/olatisun/.claude/hooks/gsd-check-update.js\""
+            "command": "bash -c 'command -v cm-memory-setup >/dev/null 2>&1 && cm-memory-setup || true'",
+            "timeout": 10000
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'command -v cm-onboarding >/dev/null 2>&1 && cm-onboarding || true'",
+            "timeout": 10000
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'command -v cm-memory-context >/dev/null 2>&1 && cm-memory-context || true'",
+            "timeout": 10000
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'command -v cm-consolidation-check >/dev/null 2>&1 && cm-consolidation-check || true'",
+            "timeout": 10000
           }
         ]
       },
@@ -55,6 +120,15 @@
           {
             "type": "command",
             "command": "bash -c 'sounds=($HOME/.claude/sounds/jobs-finished.wav $HOME/.claude/sounds/orders-captain.wav $HOME/.claude/sounds/reporting-for-duty.wav); nohup afplay \"${sounds[$RANDOM % ${#sounds[@]}]}\" >/dev/null 2>&1 &'"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'command -v cm-memory-sync >/dev/null 2>&1 && cm-memory-sync || true'",
+            "timeout": 30000
           }
         ]
       }
@@ -123,7 +197,7 @@
         ]
       },
       {
-        "matcher": "Write|Edit",
+        "matcher": "DISABLED",
         "hooks": [
           {
             "type": "command",
@@ -153,7 +227,7 @@
     "claudefiles": {
       "source": {
         "source": "github",
-        "repo": "Olatisunkanmi/claude-skills"
+        "repo": "Olatisunkanmi/claudefiles"
       }
     }
   },
