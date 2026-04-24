@@ -12,3 +12,4 @@ stats-cache.json
 settings.json.backup
 .DS_Store
 sessions/
+telemetry/
