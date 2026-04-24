@@ -13,3 +13,6 @@ settings.json.backup
 .DS_Store
 sessions/
 telemetry/
+mcp-needs-auth-cache.json
+plugins/installed_plugins.json
+plugins/known_marketplaces.json
