@@ -1,4 +1,4 @@
-# Claude Code Configuration Repository
+# Claude Code Files
 
 Portable configuration for Claude Code — skills, commands, hooks, sounds, and settings deployed to `~/.claude/`. Think dotfiles, but for Claude.
 
