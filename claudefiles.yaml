@@ -22,12 +22,23 @@ settings:
       - matcher: startup
         command: "$HOME/.claude/hooks/retro-reminder.sh"
         timeout: 5
+      - command: "bash -c 'command -v cm-memory-setup >/dev/null 2>&1 && cm-memory-setup || true'"
+        timeout: 10000
+      - command: "bash -c 'command -v cm-onboarding >/dev/null 2>&1 && cm-onboarding || true'"
+        timeout: 10000
+      - command: "bash -c 'command -v cm-memory-context >/dev/null 2>&1 && cm-memory-context || true'"
+        timeout: 10000
+      - command: "bash -c 'command -v cm-consolidation-check >/dev/null 2>&1 && cm-consolidation-check || true'"
+        timeout: 10000
+      - command: "bash $HOME/.claude/hooks/gsd-session-state.sh"
     UserPromptSubmit:
       - matcher: ".*"
         command: 'bash -c ''sounds=($HOME/.claude/sounds/orders-received.wav $HOME/.claude/sounds/affirmative.wav $HOME/.claude/sounds/right-away-sir.wav $HOME/.claude/sounds/read-you.wav $HOME/.claude/sounds/cant-believe.wav $HOME/.claude/sounds/this-too.wav $HOME/.claude/sounds/claudrophobic.wav); nohup {{sound_player}} "${sounds[$RANDOM % ${#sounds[@]}]}" >/dev/null 2>&1 &'''
     Stop:
       - matcher: ".*"
         command: 'bash -c ''sounds=($HOME/.claude/sounds/jobs-finished.wav $HOME/.claude/sounds/orders-captain.wav $HOME/.claude/sounds/reporting-for-duty.wav); nohup {{sound_player}} "${sounds[$RANDOM % ${#sounds[@]}]}" >/dev/null 2>&1 &'''
+      - command: "bash -c 'command -v cm-memory-sync >/dev/null 2>&1 && cm-memory-sync || true'"
+        timeout: 30000
     PostToolUse:
       - matcher: "Write|Edit"
         command: "$HOME/.claude/hooks/shaping-ripple.sh"
@@ -35,10 +46,28 @@ settings:
       - matcher: "Edit|Write|Bash"
         command: "$HOME/.claude/hooks/retro-trigger.sh"
         timeout: 10
+      - matcher: "Bash|Edit|Write|MultiEdit|Agent|Task"
+        command: "node \"$HOME/.claude/hooks/gsd-context-monitor.js\""
+        timeout: 10
+      - matcher: "Write|Edit"
+        command: "bash $HOME/.claude/hooks/gsd-phase-boundary.sh"
+        timeout: 5
+    PreToolUse:
+      - matcher: "Write|Edit"
+        command: "node \"$HOME/.claude/hooks/gsd-prompt-guard.js\""
+        timeout: 5
+      - matcher: "Write|Edit"
+        command: "node \"$HOME/.claude/hooks/gsd-read-guard.js\""
+        timeout: 5
+      - matcher: "DISABLED"
+        command: "node \"$HOME/.claude/hooks/gsd-workflow-guard.js\""
+        timeout: 5
+      - matcher: "Bash"
+        command: "bash $HOME/.claude/hooks/gsd-validate-commit.sh"
+        timeout: 5
   plugins:
     - feature-dev@claude-plugins-official
     - ralph-loop@claude-plugins-official
-    - ux@claudefiles
   extraKnownMarketplaces:
     claudefiles:
       source:
@@ -46,6 +75,9 @@ settings:
         repo: Olatisunkanmi/claudefiles
   preferences:
     alwaysThinkingEnabled: true
+  statusLine:
+    type: command
+    command: "node \"$HOME/.claude/hooks/gsd-statusline.js\""
 
 env:
   # Required environment variables — appended to shell rc if missing
